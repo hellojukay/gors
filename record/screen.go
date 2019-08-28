@@ -84,18 +84,12 @@ func (s *Screener) screen(r *Recorder) error {
 	defer file.Close()
 
 	// 存放终端录屏的输出
-	bufferOutput := output.NewOutput(1000)
+	bufferOutput := output.NewOutput(file, "0.0.1", s.width, s.height, r.Command, r.Title, os.Getenv("TERM"), os.Getenv("SHELL"))
 
 	// 根据回车识别出敲打的命令
 	ct, err := cterminal.NewCmdTermial()
 	if err != nil {
 		panic(err)
-	}
-
-	dest := output.NewDestination(bufferOutput, "0.0.1", s.width, s.height, r.Command, r.Title, os.Getenv("TERM"), os.Getenv("SHELL"))
-	if err := dest.Save(file); err != nil {
-		fmt.Println("save to file has a error: " + err.Error())
-		os.Exit(127)
 	}
 
 	fileSavedCmd, err := ioutil.TempFile("/tmp", "savecmd")
@@ -147,14 +141,9 @@ func (s *Screener) screen(r *Recorder) error {
 			}
 			// 在这里自己实现写入文件
 			s.pty.Write(buf[:size])
-			step := float64((time.Now().Unix() - dest.TimeStamp)) / 1000.0
+			step := float64((time.Now().Unix() - bufferOutput.TimeStamp)) / 1000.0
 			item := fmt.Sprintf("[%f], %s, %s", step, `"o"`, string(buf[:size]))
-			ct.Write([]byte(item))
-			println(item)
-			mw := io.MultiWriter(s.pty, ct)
-			if _, err := mw.Write(buf[:size]); err != nil {
-				return
-			}
+			bufferOutput.Write([]byte(item))
 		}
 	}()
 

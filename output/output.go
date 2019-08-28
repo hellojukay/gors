@@ -40,33 +40,29 @@ func (d *Header) Save(file io.ReadWriter) error {
 	return err
 }
 
-func NewHeader(output *Output, version string, width, height int64, command, title, term, shell string) *Header {
-	return &Header{
-		Version:   version,
-		Width:     width,
-		Height:    height,
-		TimeStamp: time.Now().Unix(),
-		Command:   command,
-		Title:     title,
-		Env: Env{
-			SHELL: shell,
-			TERM:  term,
-		},
-	}
-}
-
 func (o *Output) Write(data []byte) (int, error) {
-	// TODO
-	// append to file
+	// TODO append to file
 	return len(data), nil
 }
 
 func (o *Output) writeHeader() {
 
 }
-func NewOutput(w io.Writer) *Output {
+func NewOutput(w io.Writer, version string, width, height int64, command, title, term, shell string) *Output {
 	o := &Output{
 		Writer: w,
+		Header: Header{
+			Version:   version,
+			Width:     width,
+			Height:    height,
+			TimeStamp: time.Now().Unix(),
+			Command:   command,
+			Title:     title,
+			Env: Env{
+				SHELL: shell,
+				TERM:  term,
+			},
+		},
 	}
 	o.writeHeader()
 	return o
