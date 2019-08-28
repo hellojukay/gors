@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/KingDomPan/gors/record"
+	"github.com/hellojukay/gors/record"
 
 	"github.com/spf13/cobra"
 )

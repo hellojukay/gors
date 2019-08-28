@@ -11,9 +11,9 @@ import (
 	"syscall"
 	"unsafe"
 
-	cterminal "github.com/KingDomPan/gors/terminal"
+	cterminal "github.com/hellojukay/gors/terminal"
 
-	"github.com/KingDomPan/gors/output"
+	"github.com/hellojukay/gors/output"
 
 	"github.com/kr/pty"
 	"golang.org/x/crypto/ssh/terminal"

@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/KingDomPan/gors/output"
+	"github.com/hellojukay/gors/output"
 )
 
 type Player struct {

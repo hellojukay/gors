@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/KingDomPan/gors/play"
+	"github.com/hellojukay/gors/play"
 
 	"github.com/spf13/cobra"
 )
