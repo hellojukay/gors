@@ -17,13 +17,11 @@ type Output struct {
 }
 
 type Header struct {
-	Version   string `json:"version"`
-	Width     int64  `json:"width"`
-	Height    int64  `json:"height"`
-	Command   string `json:"command"`
-	Title     string `json:"title"`
-	TimeStamp int64  `json:"timestamp"`
-	Env       Env    `json:"env"`
+	Version   int   `json:"version"`
+	Width     int64 `json:"width"`
+	Height    int64 `json:"height"`
+	TimeStamp int64 `json:"timestamp"`
+	Env       Env   `json:"env"`
 }
 
 type Env struct {
@@ -41,14 +39,14 @@ func (d *Header) Save(file io.ReadWriter) error {
 }
 
 func (o *Output) Write(data []byte) (int, error) {
-	// TODO append to file
-	return len(data), nil
+	return o.Writer.Write(data)
 }
 
 func (o *Output) writeHeader() {
-
+	headerJson, _ := json.Marshal(o.Header)
+	o.Write(headerJson)
 }
-func NewOutput(w io.Writer, version string, width, height int64, command, title, term, shell string) *Output {
+func NewOutput(w io.Writer, version int, width, height int64, command, title, term, shell string) *Output {
 	o := &Output{
 		Writer: w,
 		Header: Header{
@@ -56,8 +54,6 @@ func NewOutput(w io.Writer, version string, width, height int64, command, title,
 			Width:     width,
 			Height:    height,
 			TimeStamp: time.Now().Unix(),
-			Command:   command,
-			Title:     title,
 			Env: Env{
 				SHELL: shell,
 				TERM:  term,
