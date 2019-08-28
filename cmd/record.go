@@ -9,7 +9,7 @@ import (
 var rfilename string
 
 var RecordCmd = &cobra.Command{
-	Use:   "record",
+	Use:   "rec",
 	Short: "record you terminal and save to a filename",
 	Long:  "record you terminal and save to a filename",
 	Run: func(cmd *cobra.Command, args []string) {

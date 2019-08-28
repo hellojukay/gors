@@ -7,19 +7,31 @@ import (
 	"time"
 )
 
-type Destination struct {
-	Frames   []Frame `json:"frames"`
-	Version  string  `json:"version"`
-	Width    int64   `json:"width"`
-	Height   int64   `json:"height"`
-	Duration int64   `json:"duration"`
-	Command  string  `json:"command"`
-	Title    string  `json:"title"`
-	Term     string  `json:"term"`
-	Shell    string  `json:"shell"`
+type Output struct {
+	buffer  []byte
+	MaxWait int64
+	sync.Mutex
+	TimeStamp int64
+	Writer    io.Writer
+	Header    Header
 }
 
-func (d *Destination) Save(file io.ReadWriter) error {
+type Header struct {
+	Version   string `json:"version"`
+	Width     int64  `json:"width"`
+	Height    int64  `json:"height"`
+	Command   string `json:"command"`
+	Title     string `json:"title"`
+	TimeStamp int64  `json:"timestamp"`
+	Env       Env    `json:"env"`
+}
+
+type Env struct {
+	TERM  string `json:"term"`
+	SHELL string `json:"shell"`
+}
+
+func (d *Header) Save(file io.ReadWriter) error {
 	bytes, err := json.Marshal(d)
 	if err != nil {
 		return err
@@ -28,63 +40,34 @@ func (d *Destination) Save(file io.ReadWriter) error {
 	return err
 }
 
-func NewDestination(output *Output, version string, width, height int64, command, title, term, shell string) *Destination {
-	return &Destination{
-		Frames:   output.frames,
-		Version:  version,
-		Width:    width,
-		Height:   height,
-		Duration: output.duration,
-		Command:  command,
-		Title:    title,
-		Term:     term,
-		Shell:    shell,
+func NewHeader(output *Output, version string, width, height int64, command, title, term, shell string) *Header {
+	return &Header{
+		Version:   version,
+		Width:     width,
+		Height:    height,
+		TimeStamp: time.Now().Unix(),
+		Command:   command,
+		Title:     title,
+		Env: Env{
+			SHELL: shell,
+			TERM:  term,
+		},
 	}
-}
-
-type Frame struct {
-	Data  string `json:"data"`
-	Delay int64  `json:"delay"`
-}
-
-type Output struct {
-	frames        []Frame
-	MaxWait       int64
-	lastWriteTime time.Time
-	sync.Mutex
-	duration int64
 }
 
 func (o *Output) Write(data []byte) (int, error) {
-	f := Frame{
-		Data:  string(data),
-		Delay: o.incrementElapsedTime(),
-	}
-	o.frames = append(o.frames, f)
+	// TODO
+	// append to file
 	return len(data), nil
 }
 
-func (o *Output) incrementElapsedTime() int64 {
-	o.Lock()
-	defer o.Unlock()
+func (o *Output) writeHeader() {
 
-	now := time.Now()
-	delay := int64(now.Sub(o.lastWriteTime) / time.Millisecond)
-
-	if o.MaxWait != 0 && delay > o.MaxWait {
-		delay = o.MaxWait
-	}
-	o.duration += delay
-	o.lastWriteTime = now
-
-	return delay
 }
-
-func NewOutput(maxWait int) *Output {
-	return &Output{
-		frames:        make([]Frame, 0),
-		MaxWait:       int64(maxWait),
-		duration:      0,
-		lastWriteTime: time.Now(),
+func NewOutput(w io.Writer) *Output {
+	o := &Output{
+		Writer: w,
 	}
+	o.writeHeader()
+	return o
 }

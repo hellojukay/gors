@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 	"unsafe"
 
 	cterminal "github.com/hellojukay/gors/terminal"
@@ -65,6 +66,7 @@ func (s *Screener) setSize() error {
 }
 
 func (s *Screener) screen(r *Recorder) error {
+
 	if s.pty != nil {
 		panic("Screener has already running")
 	}
@@ -88,6 +90,12 @@ func (s *Screener) screen(r *Recorder) error {
 	ct, err := cterminal.NewCmdTermial()
 	if err != nil {
 		panic(err)
+	}
+
+	dest := output.NewDestination(bufferOutput, "0.0.1", s.width, s.height, r.Command, r.Title, os.Getenv("TERM"), os.Getenv("SHELL"))
+	if err := dest.Save(file); err != nil {
+		fmt.Println("save to file has a error: " + err.Error())
+		os.Exit(127)
 	}
 
 	fileSavedCmd, err := ioutil.TempFile("/tmp", "savecmd")
@@ -137,7 +145,12 @@ func (s *Screener) screen(r *Recorder) error {
 			if err != nil {
 				return
 			}
-
+			// 在这里自己实现写入文件
+			s.pty.Write(buf[:size])
+			step := float64((time.Now().Unix() - dest.TimeStamp)) / 1000.0
+			item := fmt.Sprintf("[%f], %s, %s", step, `"o"`, string(buf[:size]))
+			ct.Write([]byte(item))
+			println(item)
 			mw := io.MultiWriter(s.pty, ct)
 			if _, err := mw.Write(buf[:size]); err != nil {
 				return
@@ -172,12 +185,6 @@ func (s *Screener) screen(r *Recorder) error {
 		<-closed
 		c.Process.Signal(syscall.Signal(syscall.SIGHUP))
 		s.pty.Close()
-
-		dest := output.NewDestination(bufferOutput, "0.0.1", s.width, s.height, r.Command, r.Title, os.Getenv("TERM"), os.Getenv("SHELL"))
-		if err := dest.Save(file); err != nil {
-			fmt.Println("save to file has a error: " + err.Error())
-			os.Exit(127)
-		}
 
 		exit <- struct{}{}
 	}()

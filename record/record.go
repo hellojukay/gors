@@ -20,7 +20,7 @@ type Recorder struct {
 
 func (r *Recorder) setDefault() {
 	if r.Filename == "" {
-		f, err := ioutil.TempFile("/tmp", "gors")
+		f, err := ioutil.TempFile("./", "gors")
 		if err != nil {
 			panic(err)
 		}

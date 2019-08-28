@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"time"
-
 	"github.com/hellojukay/gors/output"
 )
 
@@ -28,11 +26,11 @@ func (p *Player) Execute() {
 		panic(err)
 	}
 
-	for _, frame := range destination.Frames {
-		d, _ := time.ParseDuration(fmt.Sprintf("%d%s", frame.Delay, "ms"))
-		time.Sleep(d)
-		fmt.Print(frame.Data)
-	}
+	// for _, frame := range destination.Frames {
+	// 	d, _ := time.ParseDuration(fmt.Sprintf("%d%s", frame.Delay, "ms"))
+	// 	time.Sleep(d)
+	// 	fmt.Print(frame.Data)
+	// }
 
 	fmt.Println("gors recording finished.")
 }
