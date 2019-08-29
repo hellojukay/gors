@@ -40,6 +40,8 @@ func (d *Header) Save(file io.ReadWriter) (err error) {
 }
 
 func (o *Output) Write(data []byte) (int, error) {
+	o.Lock()
+	defer o.Unlock()
 	return o.Writer.Write(data)
 }
 
@@ -47,14 +49,14 @@ func (o *Output) writeHeader() {
 	headerJson, _ := json.Marshal(o.Header)
 	fmt.Fprintln(o, string(headerJson))
 }
-func NewOutput(w io.Writer, version int, width, height int64, command, title, term, shell string) *Output {
+func NewOutput(timestamp time.Time, w io.Writer, version int, width, height int64, command, title, term, shell string) *Output {
 	o := &Output{
 		Writer: w,
 		Header: Header{
 			Version:   version,
 			Width:     width,
 			Height:    height,
-			TimeStamp: time.Now().Unix(),
+			TimeStamp: timestamp.Unix(),
 			Env: Env{
 				SHELL: shell,
 				TERM:  term,

@@ -1,7 +1,7 @@
 package record
 
 import (
-	"fmt"
+	"encoding/json"
 	"io"
 	"io/ioutil"
 	"os"
@@ -114,8 +114,9 @@ func (s *Screener) screen(r *Recorder) error {
 		panic(err)
 	}
 
+	now := time.Now()
 	// 存放终端录屏的输出
-	bufferOutput := output.NewOutput(file, 2, s.width, s.height, r.Command, r.Title, os.Getenv("TERM"), os.Getenv("SHELL"))
+	bufferOutput := output.NewOutput(now, file, 2, s.width, s.height, r.Command, r.Title, os.Getenv("TERM"), os.Getenv("SHELL"))
 
 	closed := make(chan struct{}, 4)
 	exit := make(chan struct{}, 1)
@@ -140,9 +141,11 @@ func (s *Screener) screen(r *Recorder) error {
 			}
 			// 在这里自己实现写入文件
 			s.pty.Write(buf[:size])
-			step := float64((time.Now().Unix() - bufferOutput.TimeStamp)) / 1000.0 / 1000.0 / 1000.0
-			item := fmt.Sprintf("[%f, %s, %s]\n", step, `"o"`, buf[:size])
-			bufferOutput.Write([]byte(item))
+			step := float32(time.Now().UnixNano()-now.UnixNano()) / 1e9
+			jsonline := []interface{}{step, "o", string(buf[:size])}
+			bytes, _ := json.Marshal(jsonline)
+			bufferOutput.Write(bytes)
+			bufferOutput.Write([]byte("\n"))
 		}
 	}()
 
@@ -161,11 +164,13 @@ func (s *Screener) screen(r *Recorder) error {
 			if err != nil {
 				return
 			}
+			step := float32(time.Now().UnixNano()-now.UnixNano()) / 1e9
+			jsonline := []interface{}{step, "o", string(buf[:size])}
+			bytes, _ := json.Marshal(jsonline)
+			bufferOutput.Write(bytes)
+			bufferOutput.Write([]byte("\n"))
 
-			mw := io.MultiWriter(os.Stdout, bufferOutput)
-			if _, err := mw.Write(buf[:size]); err != nil {
-				return
-			}
+			os.Stdout.Write(buf[:size])
 		}
 	}()
 
