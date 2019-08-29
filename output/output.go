@@ -2,6 +2,7 @@ package output
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -29,13 +30,13 @@ type Env struct {
 	SHELL string `json:"shell"`
 }
 
-func (d *Header) Save(file io.ReadWriter) error {
+func (d *Header) Save(file io.ReadWriter) (err error) {
 	bytes, err := json.Marshal(d)
 	if err != nil {
 		return err
 	}
-	_, err = file.Write(bytes)
-	return err
+	_, err = fmt.Fprintln(file, string(bytes))
+	return
 }
 
 func (o *Output) Write(data []byte) (int, error) {
@@ -44,7 +45,7 @@ func (o *Output) Write(data []byte) (int, error) {
 
 func (o *Output) writeHeader() {
 	headerJson, _ := json.Marshal(o.Header)
-	o.Write(headerJson)
+	fmt.Fprintln(o, string(headerJson))
 }
 func NewOutput(w io.Writer, version int, width, height int64, command, title, term, shell string) *Output {
 	o := &Output{
