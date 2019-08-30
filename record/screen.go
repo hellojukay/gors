@@ -141,11 +141,6 @@ func (s *Screener) screen(r *Recorder) error {
 			}
 			// 在这里自己实现写入文件
 			s.pty.Write(buf[:size])
-			step := float32(time.Now().UnixNano()-now.UnixNano()) / 1e9
-			jsonline := []interface{}{step, "o", string(buf[:size])}
-			bytes, _ := json.Marshal(jsonline)
-			bufferOutput.Write(bytes)
-			bufferOutput.Write([]byte("\n"))
 		}
 	}()
 
